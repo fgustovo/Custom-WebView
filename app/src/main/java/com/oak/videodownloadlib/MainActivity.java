@@ -76,16 +76,22 @@ public class MainActivity extends AppCompatActivity implements TextView.OnEditor
 
                 webView.downloadVideo(container, new File(outfile), new DownloaderWebView.DownloadListener() {
                     @Override
-                    public void progress(int ratio) {
+                    public void progress(CustomWebViewClient.MediaContainer mediaContainer, int ratio) {
                         Log.d(TAG, "Progress:" + ratio);
                         d_content.setText("%" + ratio);
                     }
 
                     @Override
-                    public void error(String cause) {
-                        Log.e(TAG, "ERROR:" + cause);
+                    public void downloadStarted(CustomWebViewClient.MediaContainer mediaContainer) {
 
                     }
+
+                    @Override
+                    public void downloadCompleted(CustomWebViewClient.MediaContainer mediaContainer, String error) {
+                        Log.e(TAG, "downloadCompleted: error" + error);
+
+                    }
+
                 });
             }
         });
@@ -142,6 +148,11 @@ public class MainActivity extends AppCompatActivity implements TextView.OnEditor
                 MainActivity.this.container = null;
                 d_content.setText("content");
                 d_url.setText("url");
+            }
+
+            @Override
+            public void alertYoutube() {
+                // todo alert
             }
         });
     }

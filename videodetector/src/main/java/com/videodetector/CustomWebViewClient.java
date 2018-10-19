@@ -49,6 +49,11 @@ public class CustomWebViewClient extends WebViewClient {
     public void onPageFinished(WebView webView, final String url) {
         Log.d(TAG, "onPageFinished: " + url);
         super.onPageFinished(webView, url);
+        if (isYoutube(url)) {
+            alertYoutube(detectListener);
+            webView.stopLoading();
+            return;
+        }
         webView.loadUrl("javascript:HtmlViewer.showHTML" +
                 "(Array.prototype.slice.call(document.getElementsByTagName('video')).map(function(a) {return a.outerHTML}).join(' '));");
     }
@@ -71,9 +76,14 @@ public class CustomWebViewClient extends WebViewClient {
 
     @Override
     @CallSuper
-    public void onPageStarted(WebView view, String url, Bitmap favicon) {
+    public void onPageStarted(WebView webView, String url, Bitmap favicon) {
         Log.d(TAG, "onPageStarted: " + url);
-        super.onPageStarted(view, url, favicon);
+        super.onPageStarted(webView, url, favicon);
+        if (isYoutube(url)) {
+            alertYoutube(detectListener);
+            webView.stopLoading();
+            return;
+        }
         CustomWebViewClient.reset(detectListener);
     }
 
@@ -95,9 +105,14 @@ public class CustomWebViewClient extends WebViewClient {
         return super.shouldInterceptRequest(webView, str);
     }
 
-    public boolean shouldOverrideUrlLoading(WebView webView, String str) {
-        Log.d(TAG, "shouldOverrideUrlLoading: " + str);
-        return str.equalsIgnoreCase("about:blank") || str.startsWith("market://") || str.startsWith("data");
+    public boolean shouldOverrideUrlLoading(WebView webView, String url) {
+        Log.d(TAG, "shouldOverrideUrlLoading: " + url);
+        if (isYoutube(url)) {
+            alertYoutube(detectListener);
+            webView.stopLoading();
+            return false;
+        }
+        return url.equalsIgnoreCase("about:blank") || url.startsWith("market://") || url.startsWith("data");
     }
 
     @TargetApi(21)
@@ -201,38 +216,35 @@ public class CustomWebViewClient extends WebViewClient {
         });
     }
 
+    public static void alertYoutube(final DetectListener detectListener) {
+        if (detectListener == null) {
+            return;
+        }
+        Handler handler = new Handler(Looper.getMainLooper());
+        handler.post(new Runnable() {
+            public void run() {
+                detectListener.alertYoutube();
+            }
+        });
+    }
+
+    public static   boolean isGoogle(String url) {
+        return url != null && (url.contains("google.co"));
+    }
+
+    public static   boolean isYoutube(String url) {
+        return url != null && (url.contains("youtube.co") || url.contains("youtu.be"));
+    }
+
     public interface DetectListener {
         @MainThread
         void videoDetected(MediaContainer mediaContainer);
 
         @MainThread
         void reset();
-    }
 
-   /* todo public static void main(String[] args) {
-        System.out.println("c12: \t" + a("7777772e6461696c796d6f74696f6e2e636f6d2f706c617965722f6d657461646174612f766964656f2f")); // c12
-        System.out.println("c141: \t" + a("68747470733a2f2f7777772e6461696c796d6f74696f6e2e636f6d2f706c617965722f6d657461646174612f766964656f2f")); // c141
-        System.out.println("c151: \t" + a("3f656d6265646465723d68747470732533412532462532467777772e6461696c796d6f74696f6e2e636f6d253246766964656f253246")); // c151
-        System.out.println("c152: \t" + a("26696e746567726174696f6e3d696e6c696e65")); // c152
-        System.out.println("c17: \t" + a("7777772e6461696c796d6f74696f6e2e636f6d2f63646e2f6d616e69666573742f766964656f")); // c17
-  *//**c12: 	www.dailymotion.com/player/metadata/video/
-     c141: 	https://www.dailymotion.com/player/metadata/video/
-     c151: 	?embedder=https%3A%2F%2Fwww.dailymotion.com%2Fvideo%2F
-     c152: 	&integration=inline
-     c17: 	www.dailymotion.com/cdn/manifest/video*//*
+        @MainThread
+        void alertYoutube();
     }
-    public static String a(String str) {
-        byte[] bArr = new byte[(str.length() / 2)];
-        int ı = 0;
-        int ı2 = 0;
-        while (ı < str.length()) {
-            int ı3 = ı2 + 1;
-            int ı4 = ı + 2;
-            bArr[ı2] = Byte.parseByte(str.substring(ı, ı4), 16);
-            ı2 = ı3;
-            ı = ı4;
-        }
-        return new String(bArr);
-    }
-*/
+    // todo vimeo
 }

@@ -32,14 +32,14 @@ public class Downloader {
         try {
             MimeType mimeType = MimeType.getMimeType(container.getMimeType());
             if (mimeType != null && mimeType.isPlaylist()) {
-                new M3UPlaylistDownloader(new URL(container.getUrl()), null, listener).execute(outfile);
+                new M3UPlaylistDownloader(container, new URL(container.getUrl()), null, listener).execute(outfile);
             } else {
-                new Mp4Downloader(new URL(container.getUrl()), listener).execute(outfile);
+                new Mp4Downloader(container, new URL(container.getUrl()), listener).execute(outfile);
             }
         } catch (Throwable e) {
             e.printStackTrace();
             if (listener != null) {
-                listener.error(e.getMessage());
+                listener.downloadCompleted(container, e.getMessage());
             }
         }
 
@@ -49,21 +49,21 @@ public class Downloader {
     private static boolean validated(CustomWebViewClient.MediaContainer container, File path, DownloaderWebView.DownloadListener listener) {
         if (path == null) {
             if (listener != null) {
-                listener.error("File Path null");
+                listener.downloadCompleted(container, "File Path null");
             }
             return false;
         }
 
         if (container == null) {
             if (listener != null) {
-                listener.error("MediaContainer null");
+                listener.downloadCompleted(container, "MediaContainer null");
             }
             return false;
         }
 
         if (container.getUrl() == null) {
             if (listener != null) {
-                listener.error("URL null");
+                listener.downloadCompleted(container, "URL null");
             }
             return false;
         }

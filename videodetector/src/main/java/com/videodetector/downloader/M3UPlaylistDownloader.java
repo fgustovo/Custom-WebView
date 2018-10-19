@@ -4,6 +4,7 @@ package com.videodetector.downloader;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.videodetector.CustomWebViewClient;
 import com.videodetector.DownloaderWebView;
 
 import java.io.BufferedReader;
@@ -21,7 +22,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class M3UPlaylistDownloader extends AsyncTask<String, Void, Boolean> {
+public class M3UPlaylistDownloader extends CustomAsyncTask<String, Void, Boolean> {
     public static final String TAG = "M3UPlaylistDownloader";
 
     private static final String EXT_X_KEY = "#EXT-X-KEY";
@@ -35,9 +36,11 @@ public class M3UPlaylistDownloader extends AsyncTask<String, Void, Boolean> {
     private URL url;
     private List<String> playlist;
     private DownloaderWebView.DownloadListener downloadListener;
+    private CustomWebViewClient.MediaContainer container;
 
-    public M3UPlaylistDownloader(URL url, List<String> playlist, DownloaderWebView.DownloadListener downloadListener) {
-        this.url = url;
+    public M3UPlaylistDownloader(CustomWebViewClient.MediaContainer container, URL url, List<String> playlist, DownloaderWebView.DownloadListener downloadListener) throws MalformedURLException {
+        this.url = new URL(container.getUrl());
+        this.container = container;
         this.playlist = (playlist == null ? new ArrayList<String>() : playlist);
         this.downloadListener = downloadListener;
     }
@@ -96,13 +99,17 @@ public class M3UPlaylistDownloader extends AsyncTask<String, Void, Boolean> {
             if (null != tempUrl) {
                 url = tempUrl;
                 playlist.clear();
-                new M3UPlaylistDownloader(url, playlist, downloadListener).execute(outfile, key);
+                try {
+                    new M3UPlaylistDownloader(container, url, playlist, downloadListener).execute(outfile, key);
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                }
                 return;
             }
         }
 
         try {
-            downloadAfterCrypto(downloadListener, url, playlist, outfile, key);
+            downloadAfterCrypto(container, downloadListener, url, playlist, outfile, key);
         } catch (Throwable e) {
             Log.v(TAG, "Exception");
             e.printStackTrace();
@@ -142,10 +149,11 @@ public class M3UPlaylistDownloader extends AsyncTask<String, Void, Boolean> {
         return aUrl;
     }
 
-    private static void downloadAfterCrypto(DownloaderWebView.DownloadListener downloadListener, URL url, List<String> playlist, String outfile, String key) throws IOException, GeneralSecurityException {
+    private static void downloadAfterCrypto(CustomWebViewClient.MediaContainer container, DownloaderWebView.DownloadListener downloadListener, URL url, List<String> playlist, String outfile, String key) throws IOException, GeneralSecurityException {
         Log.v(TAG, "downloadAfterCrypto url:" + url);
         if (downloadListener != null) {
-            downloadListener.progress(0);
+            downloadStarted(downloadListener, container);
+            downloadListener.progress(container, 0);
         }
         Crypto crypto = new Crypto(getBaseUrl(url, null), key);
 
@@ -178,16 +186,16 @@ public class M3UPlaylistDownloader extends AsyncTask<String, Void, Boolean> {
             } else if (line.length() > 0 && !line.startsWith("#")) {
                 URL segmentUrl = new URL(getBaseUrl(url, line));
 
-                downloadInternal(crypto, downloadListener, segmentUrl, outfile, i, playlist.size(), lastIndex == i);
+                downloadInternal(container, crypto, downloadListener, segmentUrl, outfile, i, playlist.size(), lastIndex == i);
             }
         }
     }
 
 
-    private static void downloadInternal(final Crypto crypto, final DownloaderWebView.DownloadListener downloadListener, final URL segmentUrl, final String outFile, final int currProgress, final int size, final boolean last) {
+    private static void downloadInternal(final CustomWebViewClient.MediaContainer container, final Crypto crypto, final DownloaderWebView.DownloadListener downloadListener, final URL segmentUrl, final String outFile, final int currProgress, final int size, final boolean last) {
         final byte[] buffer = new byte[512];
 
-        new AsyncTask<Void, Integer, Void>() {
+        new CustomAsyncTask<Void, Integer, Void>() {
             @Override
             protected Void doInBackground(Void... params) {
                 InputStream is = null;
@@ -219,11 +227,14 @@ public class M3UPlaylistDownloader extends AsyncTask<String, Void, Boolean> {
                     Log.e("Progress:*", currProgress + " * " + size + " Last:" + last);
                     if (last) {
                         publishProgress(100);
+
+                        downloadCompleted(downloadListener, container, null);
                     }
                     is.close();
                     out.close();
                 } catch (IOException e) {
                     e.printStackTrace();
+                    downloadCompleted(downloadListener, container, e.getMessage());
                 }
                 Log.v(TAG, "Downloaded: " + segmentUrl);
                 return null;
@@ -233,7 +244,7 @@ public class M3UPlaylistDownloader extends AsyncTask<String, Void, Boolean> {
             protected void onProgressUpdate(Integer... values) {
                 super.onProgressUpdate(values);
                 if (downloadListener != null) {
-                    downloadListener.progress(values[0]);
+                    downloadListener.progress(container, values[0]);
                 }
             }
         }.execute();

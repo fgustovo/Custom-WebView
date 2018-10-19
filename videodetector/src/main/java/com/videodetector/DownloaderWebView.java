@@ -2,6 +2,7 @@ package com.videodetector;
 
 import android.content.Context;
 import android.os.Build;
+import android.support.annotation.MainThread;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
@@ -122,6 +123,13 @@ public class DownloaderWebView extends WebView {
     public void downloadVideo(CustomWebViewClient.MediaContainer container, File path, DownloadListener listener) {
         Log.e(CustomWebViewClient.TAG, "downloadVideo" + container.toString());
         CustomWebViewClient.reset(getCustomWebViewClient().getDetectListener());
+
+        if (container != null && container.getUrl() != null &&
+                (CustomWebViewClient.isYoutube(container.getUrl()) || CustomWebViewClient.isGoogle(container.getUrl()))) {
+            CustomWebViewClient.alertYoutube(getCustomWebViewClient().getDetectListener());
+            return;
+        }
+
         Downloader.download(container, path, listener);
     }
 
@@ -131,9 +139,14 @@ public class DownloaderWebView extends WebView {
 
 
     public interface DownloadListener {
-        void progress(int ratio);
+        @MainThread
+        void progress(CustomWebViewClient.MediaContainer mediaContainer, int ratio);
 
-        void error(String cause);
+        @MainThread
+        void downloadStarted(CustomWebViewClient.MediaContainer mediaContainer);
+
+        @MainThread
+        void downloadCompleted(CustomWebViewClient.MediaContainer mediaContainer, String error);
     }
 
 }

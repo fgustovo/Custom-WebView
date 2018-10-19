@@ -4,6 +4,7 @@ package com.videodetector.downloader;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.videodetector.CustomWebViewClient;
 import com.videodetector.DownloaderWebView;
 
 import java.io.BufferedInputStream;
@@ -11,18 +12,21 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 
-public class Mp4Downloader extends AsyncTask<String, Integer, Void> {
+public class Mp4Downloader extends CustomAsyncTask<String, Integer, Void> {
     public static final String TAG = "Mp4Downloader";
 
+    private final CustomWebViewClient.MediaContainer container;
     private String outfile;
     private URL url;
     private DownloaderWebView.DownloadListener downloadListener;
 
-    public Mp4Downloader(URL url, DownloaderWebView.DownloadListener downloadListener) {
-        this.url = url;
+    public Mp4Downloader(CustomWebViewClient.MediaContainer container, URL url, DownloaderWebView.DownloadListener downloadListener) throws MalformedURLException {
+        this.url = new URL(container.getUrl());
+        this.container = container;
         this.downloadListener = downloadListener;
     }
 
@@ -30,6 +34,8 @@ public class Mp4Downloader extends AsyncTask<String, Integer, Void> {
     protected Void doInBackground(String... params) {
         outfile = params[0];
         int count;
+
+        downloadStarted(downloadListener, container);
         publishProgress(0);
         try {
             URLConnection conection = url.openConnection();
@@ -57,11 +63,14 @@ public class Mp4Downloader extends AsyncTask<String, Integer, Void> {
             output.close();
             input.close();
 
+            publishProgress(100);
+            downloadCompleted(downloadListener, container, null); //
         } catch (IOException e) {
             Log.v(TAG, "Exception");
             e.printStackTrace();
+            downloadCompleted(downloadListener, container, e.getMessage()); //
         }
-        publishProgress(100);
+
         return null;
     }
 
@@ -75,7 +84,7 @@ public class Mp4Downloader extends AsyncTask<String, Integer, Void> {
     protected void onProgressUpdate(Integer... values) {
         super.onProgressUpdate(values);
         if (downloadListener != null) {
-            downloadListener.progress(values[0]);
+            downloadListener.progress(container, values[0]);
         }
     }
 }
