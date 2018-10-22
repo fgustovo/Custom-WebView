@@ -11,7 +11,7 @@ public class ClipboardListener {
     private static final String TAG = "ClipboardListener";
     private static Integer image;
     private static Class<? extends Activity> activityToRun;
-    
+
     @Keep
     public static void init(Context context, @DrawableRes Integer image, Class<? extends Activity> activityToRun) {
         ClipboardListener.image = image;
