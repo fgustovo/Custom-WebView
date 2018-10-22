@@ -72,7 +72,11 @@ webView.downloadVideo(mediaContainer, new File(outfile), new DownloaderWebView.D
                     }
 
                     @Override
-                    public void downloadCompleted(CustomWebViewClient.MediaContainer mediaContainer, String s) {
+                    public void downloadCompleted(CustomWebViewClient.MediaContainer mediaContainer, String error) {
+                        if (error != null) {
+                            Toast.makeText(getContext(), "Couldn't download: " + error, Toast.LENGTH_LONG).show();
+                            return;
+                        }
                         // downloadCompleted for mediaContainer
                     }
                 });
