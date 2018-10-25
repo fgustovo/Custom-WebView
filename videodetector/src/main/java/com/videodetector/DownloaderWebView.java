@@ -32,6 +32,18 @@ public class DownloaderWebView extends WebView {
         initView(context);
     }
 
+    private static void fillMediaContainerListWithTag(ArrayList<CustomWebViewClient.MediaContainer> all, String title, Elements vElements, String imgTag) {
+        for (Element last : vElements) {
+            CustomWebViewClient.MediaContainer container = new CustomWebViewClient.MediaContainer();
+
+            container.setThumbImage(last.attr(imgTag));
+            container.setUrl(last.attr("src"));
+            container.setMimeType(last.attr("type"));
+            container.setPageTitle(title);
+            all.add(container);
+        }
+    }
+
     private void initView(Context context) {
         this.getSettings().setBuiltInZoomControls(true);
         this.getSettings().setSupportZoom(true);
@@ -71,10 +83,10 @@ public class DownloaderWebView extends WebView {
                 Document parse = Jsoup.parse(html);
 
                 Elements vElements = parse.select("video[src]");
-                fillMediaContainerListWithTag(all, vElements, "poster");
+                fillMediaContainerListWithTag(all, getTitle(), vElements, "poster");
 
                 Elements sElements = parse.select("video source[src]");
-                fillMediaContainerListWithTag(all, sElements, "srcset");
+                fillMediaContainerListWithTag(all, getTitle(), sElements, "srcset");
 
                 int bestQuality = -1;
                 int bestQualityIndex = -1;
@@ -93,17 +105,6 @@ public class DownloaderWebView extends WebView {
             } catch (Throwable e) {
                 e.printStackTrace();
             }
-        }
-    }
-
-    private static void fillMediaContainerListWithTag(ArrayList<CustomWebViewClient.MediaContainer> all, Elements vElements, String imgTag) {
-        for (Element last : vElements) {
-            CustomWebViewClient.MediaContainer container = new CustomWebViewClient.MediaContainer();
-
-            container.setThumbImage(last.attr(imgTag));
-            container.setUrl(last.attr("src"));
-            container.setMimeType(last.attr("type"));
-            all.add(container);
         }
     }
 

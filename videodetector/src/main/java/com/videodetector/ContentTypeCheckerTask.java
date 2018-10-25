@@ -9,9 +9,11 @@ import java.net.URL;
 public class ContentTypeCheckerTask extends AsyncTask<String, Void, CustomWebViewClient.MediaContainer> {
 
     private final CustomWebViewClient.DetectListener detectListener;
+    private final String title;
 
-    public ContentTypeCheckerTask(CustomWebViewClient.DetectListener detectListener) {
+    public ContentTypeCheckerTask(CustomWebViewClient.DetectListener detectListener, String title) {
         this.detectListener = detectListener;
+        this.title = title;
     }
 
     @Override
@@ -29,8 +31,11 @@ public class ContentTypeCheckerTask extends AsyncTask<String, Void, CustomWebVie
 
             Log.d(CustomWebViewClient.TAG, "contentType: " + contentType + " URL:" + params[0]);
 
-            if (contentType != null && (MimeType.isVideo(contentType)))
-                return new CustomWebViewClient.MediaContainer(params[0], contentType);
+            if (contentType != null && (MimeType.isVideo(contentType))) {
+                CustomWebViewClient.MediaContainer container = new CustomWebViewClient.MediaContainer(params[0], contentType);
+                container.setPageTitle(title);
+                return container;
+            }
         } catch (Exception e) {
 //            Log.e(getClass().getSimpleName(), "exception during content type detection for url " + params[0], e);
         }

@@ -69,7 +69,7 @@ public class CustomWebViewClient extends WebViewClient {
             }
         }
         if (url.toLowerCase().startsWith("http")) {
-            new ContentTypeCheckerTask(detectListener).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, url);
+            new ContentTypeCheckerTask(detectListener, webView.getTitle()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, url);
         } else
             super.onLoadResource(webView, url);
     }
@@ -124,19 +124,18 @@ public class CustomWebViewClient extends WebViewClient {
 
     public static class MediaContainer {
         private String url;
+
         private @Nullable
         String mimeType;
+
         private @Nullable
         String thumbImage;
 
+        private @Nullable
+        String pageTitle;
+
         public MediaContainer() {
 
-        }
-
-        public MediaContainer(String url, @Nullable String mimeType, @Nullable String thumbImage) {
-            this.url = url;
-            this.mimeType = mimeType;
-            this.thumbImage = thumbImage;
         }
 
         public MediaContainer(String url, @Nullable String mimeType) {
@@ -147,9 +146,10 @@ public class CustomWebViewClient extends WebViewClient {
         public int quality() {
             int hasMimeType = TextUtils.isEmpty(getMimeType()) ? 0 : 1;
             int hasThumbImage = TextUtils.isEmpty(getThumbImage()) ? 0 : 1;
+            int hasPageTitle = TextUtils.isEmpty(getPageTitle()) ? 0 : 1;
             int mp4 = MimeType.mp4.getType().equals(getMimeType()) ? 3 : 0;
 
-            return mp4 + hasThumbImage + hasMimeType;
+            return mp4 + hasThumbImage + hasMimeType + hasPageTitle;
         }
 
         public String getUrl() {
@@ -181,11 +181,20 @@ public class CustomWebViewClient extends WebViewClient {
             this.thumbImage = thumbImage;
         }
 
+        public String getPageTitle() {
+            return pageTitle;
+        }
+
+        public void setPageTitle(String pageTitle) {
+            this.pageTitle = pageTitle;
+        }
+
         @Override
         public String toString() {
             return "MediaContainer{" +
                     "mimeType='" + mimeType + '\'' +
                     ", url='" + url + '\'' +
+                    ", title='" + getPageTitle() + '\'' +
                     ", thumbImage='" + thumbImage + '\'' +
                     '}';
         }
