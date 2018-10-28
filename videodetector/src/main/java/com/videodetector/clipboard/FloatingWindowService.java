@@ -49,9 +49,11 @@ public class FloatingWindowService extends Service {
 
     @Override
     public final int onStartCommand(Intent intent, int flags, int startId) {
-        Bundle extras = intent.getExtras();
-        if (extras != null) {
-            this.url = extras.getString("url");
+        if (intent != null) {
+            Bundle extras = intent.getExtras();
+            if (extras != null) {
+                this.url = extras.getString("url");
+            }
         }
         return super.onStartCommand(intent, flags, startId);
     }

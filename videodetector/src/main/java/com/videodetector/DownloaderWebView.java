@@ -122,7 +122,9 @@ public class DownloaderWebView extends WebView {
     }
 
     public void downloadVideo(CustomWebViewClient.MediaContainer container, File path, DownloadListener listener) {
-        Log.e(CustomWebViewClient.TAG, "downloadVideo" + container.toString());
+        if (container != null) {
+            Log.e(CustomWebViewClient.TAG, "downloadVideo" + container.toString());
+        }
         CustomWebViewClient.reset(getCustomWebViewClient().getDetectListener());
 
         if (container != null && container.getUrl() != null &&

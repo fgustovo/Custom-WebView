@@ -17,7 +17,7 @@ buildscript {
 // In your app projects build.gradle file:
 
 dependencies {
-    implementation 'com.github.fgustovo:Custom-WebView:0.0.5'
+    implementation 'com.github.fgustovo:Custom-WebView:0.1.0'
 }
 ```
 
