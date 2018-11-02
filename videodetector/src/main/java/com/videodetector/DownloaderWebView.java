@@ -78,30 +78,40 @@ public class DownloaderWebView extends WebView {
         if (html != null && getCustomWebViewClient().getDetectListener() != null) {
 
             try {
-                ArrayList<CustomWebViewClient.MediaContainer> all = new ArrayList<>();
+                final ArrayList<CustomWebViewClient.MediaContainer> all = new ArrayList<>();
 
-                Document parse = Jsoup.parse(html);
+                final Document parse = Jsoup.parse(html);
 
-                Elements vElements = parse.select("video[src]");
-                fillMediaContainerListWithTag(all, getTitle(), vElements, "poster");
+                this.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Elements vElements = parse.select("video[src]");
+                            fillMediaContainerListWithTag(all, getTitle(), vElements, "poster");
 
-                Elements sElements = parse.select("video source[src]");
-                fillMediaContainerListWithTag(all, getTitle(), sElements, "srcset");
+                            Elements sElements = parse.select("video source[src]");
+                            fillMediaContainerListWithTag(all, getTitle(), sElements, "srcset");
 
-                int bestQuality = -1;
-                int bestQualityIndex = -1;
-                for (int i = 0; i < all.size(); i++) {
-                    CustomWebViewClient.MediaContainer container = all.get(i);
-                    int q = container.quality();
-                    if (q > bestQuality) {
-                        bestQuality = q;
-                        bestQualityIndex = i;
+                            int bestQuality = -1;
+                            int bestQualityIndex = -1;
+                            for (int i = 0; i < all.size(); i++) {
+                                CustomWebViewClient.MediaContainer container = all.get(i);
+                                int q = container.quality();
+                                if (q > bestQuality) {
+                                    bestQuality = q;
+                                    bestQualityIndex = i;
+                                }
+                            }
+
+                            if (bestQualityIndex > -1) {
+                                CustomWebViewClient.videoDetected(getCustomWebViewClient().getDetectListener(), all.get(bestQualityIndex));
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
-                }
+                });
 
-                if (bestQualityIndex > -1) {
-                    CustomWebViewClient.videoDetected(getCustomWebViewClient().getDetectListener(), all.get(bestQualityIndex));
-                }
             } catch (Throwable e) {
                 e.printStackTrace();
             }

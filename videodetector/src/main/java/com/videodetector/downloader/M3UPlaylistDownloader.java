@@ -1,7 +1,6 @@
 package com.videodetector.downloader;
 
 
-import android.os.AsyncTask;
 import android.util.Log;
 
 import com.videodetector.CustomWebViewClient;
@@ -39,7 +38,11 @@ public class M3UPlaylistDownloader extends CustomAsyncTask<String, Void, Boolean
     private CustomWebViewClient.MediaContainer container;
 
     public M3UPlaylistDownloader(CustomWebViewClient.MediaContainer container, URL url, List<String> playlist, DownloaderWebView.DownloadListener downloadListener) throws MalformedURLException {
-        this.url = new URL(container.getUrl());
+        if (url == null) {
+            this.url = new URL(container.getUrl());
+        } else {
+            this.url = url;
+        }
         this.container = container;
         this.playlist = (playlist == null ? new ArrayList<String>() : playlist);
         this.downloadListener = downloadListener;

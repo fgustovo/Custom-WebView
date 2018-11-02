@@ -99,6 +99,7 @@ public class MainActivity extends AppCompatActivity implements TextView.OnEditor
         edittext = findViewById(R.id.url);
         edittext.setOnEditorActionListener(this);
 
+        urls.add("https://www.dailymotion.com/video/x6wdjoy"); // m3u döngü
         urls.add("https://vimeo.com/stock/clip-287237195-interior-shot-of-a-guy-driving-down-the-road-in-an-old-car"); // m4s
         urls.add("https://www.dailymotion.com/video/x6vckzg"); // reklam iniyor
 
