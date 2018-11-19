@@ -8,7 +8,12 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application>
-        <service android:name=".clipboard.ClipboardHandlerService" />
-        <service android:name=".clipboard.FloatingWindowService" />
+        <service android:name=".clipboard.ClipboardHandlerService"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE"/>
+        <service
+            android:name=".clipboard.FloatingWindowService"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
     </application>
 </manifest>

@@ -1,23 +1,34 @@
 package com.videodetector.clipboard;
 
 
-import android.app.Service;
 import android.content.ClipboardManager;
 import android.content.ClipboardManager.OnPrimaryClipChangedListener;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
-import android.os.IBinder;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
+import android.support.v4.app.JobIntentService;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
 import com.videodetector.Utils;
 
-public class ClipboardHandlerService extends Service {
+public class ClipboardHandlerService extends JobIntentService {
     private static final String TAG = "ClipboardHandlerService";
 
     private ClipboardManager clipboardManager;
     private OnPrimaryClipChangedListener clipChangedListener;
+
+    public static boolean canDrawOverlays(Context context) {
+        return Build.VERSION.SDK_INT < 23 || Settings.canDrawOverlays(context);
+    }
+
+    public static final int JOB_ID = 2;
+
+    public static void enqueueWork(Context context, Intent work) {
+        enqueueWork(context, ClipboardHandlerService.class, JOB_ID, work);
+    }
 
     public void onCreate() {
         super.onCreate();
@@ -33,7 +44,7 @@ public class ClipboardHandlerService extends Service {
                 if (canDrawOverlays(ClipboardHandlerService.this)) {
                     Intent intent = new Intent(ClipboardHandlerService.this, FloatingWindowService.class);
                     intent.putExtra("url", a);
-                    ClipboardHandlerService.this.startService(intent);
+                    FloatingWindowService.enqueueWork(ClipboardHandlerService.this, intent);
                 } else {
                     // todo notification
                 }
@@ -45,19 +56,6 @@ public class ClipboardHandlerService extends Service {
         this.clipboardManager.addPrimaryClipChangedListener(this.clipChangedListener);
     }
 
-    public static boolean canDrawOverlays(Context context) {
-        return Build.VERSION.SDK_INT < 23 || Settings.canDrawOverlays(context);
-    }
-
-
-    public int onStartCommand(Intent intent, int i, int i2) {
-        return START_STICKY;
-    }
-
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
-
     public void onDestroy() {
         super.onDestroy();
 
@@ -65,7 +63,13 @@ public class ClipboardHandlerService extends Service {
             this.clipboardManager.removePrimaryClipChangedListener(this.clipChangedListener);
         }
         if (Build.VERSION.SDK_INT < 26) {
-            startService(new Intent(this, ClipboardHandlerService.class));
+            Intent service = new Intent(this, ClipboardHandlerService.class);
+            ClipboardHandlerService.enqueueWork(this, service);
         }
+    }
+
+    @Override
+    protected void onHandleWork(@NonNull Intent intent) {
+
     }
 }

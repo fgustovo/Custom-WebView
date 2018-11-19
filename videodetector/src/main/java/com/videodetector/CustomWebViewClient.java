@@ -194,7 +194,7 @@ public class CustomWebViewClient extends WebViewClient {
             return "MediaContainer{" +
                     "mimeType='" + mimeType + '\'' +
                     ", url='" + url + '\'' +
-                    ", title='" + getPageTitle() + '\'' +
+                    ", title='" + pageTitle + '\'' +
                     ", thumbImage='" + thumbImage + '\'' +
                     '}';
         }

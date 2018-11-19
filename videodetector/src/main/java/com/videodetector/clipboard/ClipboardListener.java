@@ -16,7 +16,8 @@ public class ClipboardListener {
     public static void init(Context context, @DrawableRes Integer image, Class<? extends Activity> activityToRun) {
         ClipboardListener.image = image;
         ClipboardListener.activityToRun = activityToRun;
-        context.startService(new Intent(context, ClipboardHandlerService.class));
+        Intent i = new Intent(context, ClipboardHandlerService.class);
+        ClipboardHandlerService.enqueueWork(context, i);
     }
 
     static Integer getImage() {

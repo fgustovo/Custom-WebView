@@ -6,7 +6,9 @@ import android.animation.Animator.AnimatorListener;
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.Notification;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.Drawable;
@@ -15,6 +17,7 @@ import android.os.Build.VERSION;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
+import android.support.v4.app.JobIntentService;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
@@ -33,7 +36,7 @@ import com.videodetector.R;
 import com.videodetector.Utils;
 
 
-public class FloatingWindowService extends Service {
+public class FloatingWindowService extends JobIntentService {
     private static final String TAG = "FloatingWindowService";
     private boolean displayed = false;
 
@@ -43,23 +46,26 @@ public class FloatingWindowService extends Service {
 
     private String url;
 
-    public final IBinder onBind(Intent intent) {
-        return null;
+    public static final int JOB_ID = 1;
+
+    public static void enqueueWork(Context context, Intent work) {
+        enqueueWork(context, FloatingWindowService.class, JOB_ID, work);
     }
 
+
     @Override
-    public final int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent != null) {
+    protected void onHandleWork(@NonNull Intent intent) {
+       if (intent != null) {
             Bundle extras = intent.getExtras();
             if (extras != null) {
                 this.url = extras.getString("url");
             }
         }
-        return super.onStartCommand(intent, flags, startId);
     }
 
     public final void onCreate() {
         super.onCreate();
+
         if (ClipboardListener.isValid()) {
             FloatingWindowService.this.display();
         }
@@ -78,6 +84,7 @@ public class FloatingWindowService extends Service {
             e.printStackTrace();
         }
     }
+
 
     private void destroy() {
         if (!displayed || this.linearLayout == null) {
